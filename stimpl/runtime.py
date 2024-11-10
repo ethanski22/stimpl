@@ -1,5 +1,6 @@
 from typing import Any, Tuple, Optional
 
+
 from stimpl.expression import *
 from stimpl.types import *
 from stimpl.errors import *
@@ -25,7 +26,7 @@ class State(object):
     def get_value(self, variable_name) -> Any:
         """ TODO: Implement. """
         variable_value, variable_type = self.value
-        return State(variable_name, variable_value, variable_type, self)
+        return State(variable_name, variable_value, variable_type, self.next_state)
 
     def __repr__(self) -> str:
         return f"{self.variable_name}: {self.value}, " + repr(self.next_state)
@@ -81,7 +82,12 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Sequence(exprs=exprs) | Program(exprs=exprs):
             """ TODO: Implement. """
-            pass
+            if len(exprs) == 0:
+                return evaluate(Ren(), state)
+            value_result, value_type, new_state = evaluate(exprs[0], state)
+            if len(exprs) == 1:
+                return (value_result, value_type, new_state)
+            return evaluate(Sequence(*exprs[1:]), state)
 
         case Variable(variable_name=variable_name):
             value = state.get_value(variable_name)
@@ -262,26 +268,121 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Lte(left=left, right=right):
             """ TODO: Implement. """
-            pass
+            left_value, left_type, new_state = evaluate(left, state)
+            right_value, right_type, new_state = evaluate(right, new_state)
+
+            result = None
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Lte:
+            Cannot compare {left_type} and {right_type}""")
+
+            match left_type:
+                case Integer() | Boolean() | String() | FloatingPoint():
+                    result = left_value <= right_value
+                case Unit():
+                    result = False
+                case _:
+                    raise InterpTypeError(
+                        f"Cannot perform <= on {left_type} type.")
+                
+            return (result, Boolean(), new_state)
+
 
         case Gt(left=left, right=right):
             """ TODO: Implement. """
-            pass
+            left_value, left_type, new_state = evaluate(left, state)
+            right_value, right_type, new_state = evaluate(right, new_state)
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Gt:
+            Cannot compare {left_type} and {right_type}""")
+
+            match left_type:
+                case Integer() | Boolean() | String() | FloatingPoint():
+                    result = left_value > right_value
+                case Unit():
+                    result = False
+                case _:
+                    raise InterpTypeError(
+                        f"Cannot perform > on {left_type} type.")
+                
+            return (result, Boolean(), new_state)
 
         case Gte(left=left, right=right):
             """ TODO: Implement. """
-            pass
+            left_value, left_type, new_state = evaluate(left, state)
+            right_value, right_type, new_state = evaluate(right, new_state)
+
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Gte:
+            Cannot compare {left_type} and {right_type}""")
+
+            match left_type:
+                case Integer() | Boolean() | String() | FloatingPoint():
+                    result = left_value >= right_value
+                case Unit():
+                    result = False
+                case _:
+                    raise InterpTypeError(
+                        f"Cannot perform >= on {left_type} type.")
+                
+            return (result, Boolean(), new_state)
 
         case Eq(left=left, right=right):
             """ TODO: Implement. """
-            pass
+            left_value, left_type, new_state = evaluate(left, state)
+            right_value, right_type, new_state = evaluate(right, new_state)
+
+            match left_type:
+                case Integer() | Boolean() | String() | FloatingPoint():
+                    result = (left_value == right_value)
+                case Unit():
+                    result = False
+                case _:
+                    raise InterpTypeError(
+                        f"Cannot perform == on {left_type} type.")
+                
+            return (result, Boolean(), new_state)
 
         case Ne(left=left, right=right):
             """ TODO: Implement. """
-            pass
+            left_value, left_type, new_state = evaluate(left, state)
+            right_value, right_type, new_state = evaluate(right, new_state)
+
+            match left_type:
+                case Integer() | Boolean() | String() | FloatingPoint():
+                    result = (left_value != right_value)
+                case Unit():
+                    result = False
+                case _:
+                    raise InterpTypeError(
+                        f"Cannot perform != on {left_type} type.")
+                
+            return (result, Boolean(), new_state)
 
         case While(condition=condition, body=body):
             """ TODO: Implement. """
+            cond_result, cond_type, new_state = evaluate(condition, state)
+
+            match cond_type:
+                case Boolean():
+                    result = cond_result
+                case _:
+                    raise InterpTypeError("While loop requires a boolean condition.")
+                
+            while result:
+                body_result, body_type, new_state = evaluate(body, new_state)
+                cond_result, cond_type, new_state = evaluate(condition, new_state)
+
+                match cond_type:
+                    case Boolean():
+                        result = cond_result
+                    case _:
+                        raise InterpTypeError("While loop requires a boolean condition.")
+                
+                return (result, cond_type, new_state)
+            
             pass
 
         case _:
