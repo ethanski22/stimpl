@@ -25,8 +25,10 @@ class State(object):
 
     def get_value(self, variable_name) -> Any:
         """ TODO: Implement. """
-        variable_value, variable_type = self.value
-        return State(variable_name, variable_value, variable_type, self.next_state)
+        if variable_name == self.variable_name:
+            return self.value
+        else:
+            return self.next_state.get_value(variable_name)
 
     def __repr__(self) -> str:
         return f"{self.variable_name}: {self.value}, " + repr(self.next_state)
@@ -82,12 +84,11 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Sequence(exprs=exprs) | Program(exprs=exprs):
             """ TODO: Implement. """
-            if len(exprs) == 0:
-                return evaluate(Ren(), state)
-            value_result, value_type, new_state = evaluate(exprs[0], state)
-            if len(exprs) == 1:
-                return (value_result, value_type, new_state)
-            return evaluate(Sequence(*exprs[1:]), state)
+            current_state = state
+            result_value, result_type = None, Unit()
+            for expr in exprs:
+                result_value, result_type, current_state = evaluate(expr, current_state)
+            return (result_value, result_type, current_state)
 
         case Variable(variable_name=variable_name):
             value = state.get_value(variable_name)
@@ -176,6 +177,9 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 raise InterpTypeError(f"""Mismatched types for Divide:
             Cannot divide {left_type} to {right_type}""")
 
+            if right_result == 0:
+                raise InterpMathError(f"""Cannot Divide by 0""")
+
             match left_type:
                 case Integer() | FloatingPoint():
                     result = left_result / right_result
@@ -219,11 +223,11 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
         case Not(expr=expr):
             """ TODO: Implement. """
-            expr_value, expr_type, new_state = evaluate
+            expr_value, expr_type, new_state = evaluate(expr, state)
             
-            match expr:
+            match expr_type:
                 case Boolean():
-                    result != expr_value
+                    result = not(expr_value)
                 case _:
                     raise InterpTypeError(
                         "Cannot perform logical not on non-boolean operands.")
@@ -281,7 +285,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 case Integer() | Boolean() | String() | FloatingPoint():
                     result = left_value <= right_value
                 case Unit():
-                    result = False
+                    result = True
                 case _:
                     raise InterpTypeError(
                         f"Cannot perform <= on {left_type} type.")
@@ -322,7 +326,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 case Integer() | Boolean() | String() | FloatingPoint():
                     result = left_value >= right_value
                 case Unit():
-                    result = False
+                    result = True
                 case _:
                     raise InterpTypeError(
                         f"Cannot perform >= on {left_type} type.")
@@ -334,11 +338,15 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
             left_value, left_type, new_state = evaluate(left, state)
             right_value, right_type, new_state = evaluate(right, new_state)
 
+            if left_type != right_type:
+                raise InterpTypeError(f"""Mismatched types for Gte:
+            Cannot compare {left_type} and {right_type}""")
+
             match left_type:
                 case Integer() | Boolean() | String() | FloatingPoint():
-                    result = (left_value == right_value)
+                    result = left_value == right_value
                 case Unit():
-                    result = False
+                    result = True
                 case _:
                     raise InterpTypeError(
                         f"Cannot perform == on {left_type} type.")
