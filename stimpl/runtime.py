@@ -23,6 +23,9 @@ class State(object):
     def set_value(self, variable_name, variable_value, variable_type):
         return State(variable_name, variable_value, variable_type, self)
 
+    '''
+    
+    '''
     def get_value(self, variable_name) -> Any:
         """ TODO: Implement. """
         if variable_name == self.variable_name:
@@ -181,7 +184,9 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 raise InterpMathError(f"""Cannot Divide by 0""")
 
             match left_type:
-                case Integer() | FloatingPoint():
+                case Integer():
+                    result = left_result // right_result
+                case FloatingPoint():
                     result = left_result / right_result
                 case _:
                     raise InterpTypeError(f"""Cannot divide {left_type}s""")
@@ -389,9 +394,7 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                     case _:
                         raise InterpTypeError("While loop requires a boolean condition.")
                 
-                return (result, cond_type, new_state)
-            
-            pass
+            return (result, cond_type, new_state)
 
         case _:
             raise InterpSyntaxError("Unhandled!")
