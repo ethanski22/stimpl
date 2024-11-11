@@ -24,7 +24,15 @@ class State(object):
         return State(variable_name, variable_value, variable_type, self)
 
     '''
-    
+    Get value gets the value of the variable given
+
+    The paramater is a variable name
+
+    If the variable name given matches the variable name of the
+    current instance, return its stored value
+    Else call get value on the next state
+
+    Returns the value of the variable if found
     '''
     def get_value(self, variable_name) -> Any:
         """ TODO: Implement. """
@@ -85,6 +93,17 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
             return (printable_value, printable_type, new_state)
 
+
+            '''
+            Handles whether sequence or program is the input
+
+            Iterates through each expression in exprs, evaluating them in sequence
+            Updates the current state after each expression evaluation
+            Tracks the result value and type of each evaluated expression 
+            with the final expression's result being returned
+
+            Returns a tuple containg the result value, type and the current state
+            '''
         case Sequence(exprs=exprs) | Program(exprs=exprs):
             """ TODO: Implement. """
             current_state = state
@@ -133,7 +152,22 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                     raise InterpTypeError(f"""Cannot add {left_type}s""")
 
             return (result, left_type, new_state)
+        
+            '''
+            The inputs to the subtract function are the
+            left and right arguments
 
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is an int or a fp then subtract the right 
+            value from the left value
+            If not then we throw a type error
+
+            Return the result and the type
+            '''
         case Subtract(left=left, right=right):
             """ TODO: Implement. """
             result = 0
@@ -152,6 +186,21 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
             return (result, left_type, new_state)
 
+            '''
+            The inputs to the mutiply function are the
+            left and right arguments
+
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is an int or a fp then multiply the left and
+            right values 
+            If not then we throw a type error
+
+            Return the result and the type
+            '''
         case Multiply(left=left, right=right):
             """ TODO: Implement. """
             result = 0
@@ -170,6 +219,23 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
             return (result, left_type, new_state)
 
+            '''
+            The inputs to the divide function are the
+            left and right arguments
+
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the right value is 0 then throw a divide by zero error
+
+            If the type is an int or a fp then divide the left and
+            right values 
+            If not then we throw a type error
+
+            Return the result and the type
+            '''
         case Divide(left=left, right=right):
             """ TODO: Implement. """
             result = 0
@@ -208,7 +274,21 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                         "Cannot perform logical and on non-boolean operands.")
 
             return (result, left_type, new_state)
+        
+            '''
+            The inputs to the or function are the
+            left and right arguments
 
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is a bool then continue with the or operation
+            If not then throw an error
+
+            Return the result and the type
+            '''
         case Or(left=left, right=right):
             """ TODO: Implement. """
             left_value, left_type, new_state = evaluate(left, state)
@@ -226,6 +306,17 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 
             return (result, left_type, new_state)
 
+            '''
+            The input to the not function is an expression
+
+            Define the expression value, type and the new state 
+            by evaluating the expression and the state
+
+            If the type is a bool then continue with the not operation
+            If not then throw an error
+
+            Return the result and the type
+            '''
         case Not(expr=expr):
             """ TODO: Implement. """
             expr_value, expr_type, new_state = evaluate(expr, state)
@@ -238,7 +329,18 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                         "Cannot perform logical not on non-boolean operands.")
                 
             return (result, expr_type, new_state)
+        
+            '''
+            The input to the or function is a condition
 
+            Define the condition value, type and the new state 
+            by evaluating the condition and the state
+
+            If the type is a bool then continue with the if expression
+            If not then throw an error
+
+            Return true or false based on the condition
+            '''
         case If(condition=condition, true=true, false=false):
             """ TODO: Implement. """
             cond_result, cond_type, new_state = evaluate(condition, state)
@@ -275,6 +377,20 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
 
             return (result, Boolean(), new_state)
 
+            '''
+            The inputs to the lte function are the
+            left and right arguments
+
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is a bool then continue with the lte operation
+            If not then throw an error
+
+            Return the result and the type
+            '''
         case Lte(left=left, right=right):
             """ TODO: Implement. """
             left_value, left_type, new_state = evaluate(left, state)
@@ -297,7 +413,20 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 
             return (result, Boolean(), new_state)
 
+            '''
+            The inputs to the gt function are the
+            left and right arguments
 
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is a bool then continue with the gt operation
+            If not then throw an error
+
+            Return the result and the type
+            '''
         case Gt(left=left, right=right):
             """ TODO: Implement. """
             left_value, left_type, new_state = evaluate(left, state)
@@ -318,6 +447,20 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 
             return (result, Boolean(), new_state)
 
+            '''
+            The inputs to the gte function are the
+            left and right arguments
+
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is a bool then continue with the gte operation
+            If not then throw an error
+
+            Return the result and the type
+            '''
         case Gte(left=left, right=right):
             """ TODO: Implement. """
             left_value, left_type, new_state = evaluate(left, state)
@@ -338,6 +481,20 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 
             return (result, Boolean(), new_state)
 
+            '''
+            The inputs to the eq function are the
+            left and right arguments
+
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is a bool then continue with the eq operation
+            If not then throw an error
+
+            Return the result and the type
+            '''
         case Eq(left=left, right=right):
             """ TODO: Implement. """
             left_value, left_type, new_state = evaluate(left, state)
@@ -358,6 +515,20 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 
             return (result, Boolean(), new_state)
 
+            '''
+            The inputs to the ne function are the
+            left and right arguments
+
+            Define the left restult and type as well as the right
+            value and type along with their new states
+
+            Check to see if the types of the left and right match
+
+            If the type is a bool then continue with the ne operation
+            If not then throw an error
+
+            Return the result and the type
+            '''
         case Ne(left=left, right=right):
             """ TODO: Implement. """
             left_value, left_type, new_state = evaluate(left, state)
@@ -374,6 +545,22 @@ def evaluate(expression: Expr, state: State) -> Tuple[Optional[Any], Type, State
                 
             return (result, Boolean(), new_state)
 
+            '''
+            The inputs to the while function are the
+            condition and body
+
+            Define the condition restult and type as well as the new state
+            by evaluating the contition and current state
+
+            If the type is a bool then continue with the while operation
+            If not then throw an error
+
+            In the while loop define the body result and type and the 
+            condition result and type by evaluating the body and condition
+            with the new state
+
+            Return the result and the type
+            '''
         case While(condition=condition, body=body):
             """ TODO: Implement. """
             cond_result, cond_type, new_state = evaluate(condition, state)
